@@ -22,7 +22,7 @@ public class RagelClean extends Ragel {
 		void clean(File file) {
 			File out;
 			for(String[] lang : languages)
-				if ((out = outputFile(file, lang[LANG_EXT], outputDirectory)).exists()) {
+				if ((out = outputFile(file, lang[LANG_EXT])).exists()) {
 					getLog().info("Unlink: " + out);
 					out.delete();
 				}

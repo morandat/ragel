@@ -9,7 +9,7 @@ public abstract class Ragel extends AbstractMojo {
 	@Parameter(defaultValue = "${project.build.directory}/generated-sources/ragel", property = "outputDir", required = true)
 	protected File outputDirectory;
 
-	@Parameter(defaultValue = "${project.build.ragel}", property = "sourceDir", required = true)
+	@Parameter(defaultValue = "${basedir}/src/main/ragel", property = "sourceDir", required = true)
 	protected File sourceDirectory;
 
 	public final static String RAGEL_EXT = ".rl";

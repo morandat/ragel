@@ -2,6 +2,7 @@ package fr.labri.ragel.ragel;
 
 import org.apache.maven.plugin.MojoExecutionException;
 
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -9,12 +10,14 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
 
-@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE)
+@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject=true)
 public class RagelCompile extends Ragel {
+    @Parameter(property = "project", required = true, readonly = true)
+    protected MavenProject project;
+    
 	@Parameter(defaultValue = "ragel", property = "ragelCommand", required = true)
 	private String ragelCommand;
 
@@ -27,6 +30,9 @@ public class RagelCompile extends Ragel {
 	public void execute() throws MojoExecutionException {
 		if (!outputDirectory.exists())
 			outputDirectory.mkdirs();
+		
+        project.addCompileSourceRoot(outputDirectory.getPath());
+
 
 		String lang[] = selectLanguage(targetLanguage);
 
