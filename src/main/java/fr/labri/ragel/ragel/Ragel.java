@@ -6,7 +6,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Parameter;
 
 public abstract class Ragel extends AbstractMojo {
-	@Parameter(defaultValue = "${project.build.directory}/generated-classes", property = "outputDir", required = true)
+	@Parameter(defaultValue = "${project.build.directory}/generated-sources/ragel", property = "outputDir", required = true)
 	protected File outputDirectory;
 
 	@Parameter(defaultValue = "${project.build.ragel}", property = "sourceDir", required = true)
@@ -20,9 +20,13 @@ public abstract class Ragel extends AbstractMojo {
 
 	public static final String languages[][] = { { "java", "-J", "java" } };
 
-	static protected File outputFile(File gramar, String ext, File targetDir) {
+	protected File outputFile(File gramar, String ext) {
+		File targetDir = new File(outputDirectory, gramar.getParent().substring(
+				sourceDirectory.toString().length()));
+
 		String asString = gramar.getName().toString();
 		int pos = asString.lastIndexOf('.');
+
 		if (pos != -1)
 			asString = asString.substring(0, pos);
 		return new File(targetDir, new StringBuilder(asString).append('.')
