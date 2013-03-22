@@ -13,7 +13,7 @@ public class RagelClean extends Ragel {
 		public void execute() throws MojoExecutionException {
 			for (File file : sourceDirectory.listFiles(new FilenameFilter() {
 				public boolean accept(File dir, String name) {
-					return name.endsWith(RAGEL_EXT);
+					return name.endsWith(RAGEL_EXT) || name.endsWith(RAGELX_EXT);
 				}
 			}))
 				clean(file);

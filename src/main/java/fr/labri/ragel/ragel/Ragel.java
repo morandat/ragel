@@ -13,6 +13,7 @@ public abstract class Ragel extends AbstractMojo {
 	protected File sourceDirectory;
 
 	public final static String RAGEL_EXT = ".rl";
+	public final static String RAGELX_EXT = ".rlx";
 
 	public final static int LANG_NAME = 0;
 	public final static int LANG_COMMAND = 1;
@@ -20,16 +21,19 @@ public abstract class Ragel extends AbstractMojo {
 
 	public static final String languages[][] = { { "java", "-J", "java" } };
 
-	protected File outputFile(File gramar, String ext) {
-		File targetDir = new File(outputDirectory, gramar.getParent().substring(
-				sourceDirectory.toString().length()));
-
-		String asString = gramar.getName().toString();
+	protected String basename(File fname) {
+		String asString = fname.getName().toString();
 		int pos = asString.lastIndexOf('.');
 
 		if (pos != -1)
 			asString = asString.substring(0, pos);
-		return new File(targetDir, new StringBuilder(asString).append('.')
+		return asString;
+	}
+	protected File outputFile(File gramar, String ext) {
+		File targetDir = new File(outputDirectory, gramar.getParent().substring(
+				sourceDirectory.toString().length()));
+		
+		return new File(targetDir, new StringBuilder(basename(gramar)).append('.')
 				.append(ext).toString());
 	}
 }

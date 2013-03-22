@@ -8,16 +8,20 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
+import fr.labri.ragelpp.RagelX;
+
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject=true)
+@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = true)
 public class RagelCompile extends Ragel {
-    @Parameter(property = "project", required = true, readonly = true)
-    protected MavenProject project;
-    
+	@Parameter(property = "project", required = true, readonly = true)
+	protected MavenProject project;
+
 	@Parameter(defaultValue = "ragel", property = "ragelCommand", required = true)
 	private String ragelCommand;
 
@@ -30,9 +34,8 @@ public class RagelCompile extends Ragel {
 	public void execute() throws MojoExecutionException {
 		if (!outputDirectory.exists())
 			outputDirectory.mkdirs();
-		
-        project.addCompileSourceRoot(outputDirectory.getPath());
 
+		project.addCompileSourceRoot(outputDirectory.getPath());
 
 		String lang[] = selectLanguage(targetLanguage);
 
@@ -43,25 +46,63 @@ public class RagelCompile extends Ragel {
 		for (File file : dir.listFiles(new FileFilter() {
 			@Override
 			public boolean accept(File pathname) {
-				if (pathname.isFile())
-					return pathname.toString().endsWith(RAGEL_EXT);
-				if (pathname.isDirectory()) 
+				if (pathname.isFile()) {
+					String f = pathname.toString();
+					return f.endsWith(RAGEL_EXT) || f.endsWith(RAGELX_EXT);
+				}
+				if (pathname.isDirectory())
 					recursiveCallRagel(new File(dir, pathname.getName()), lang);
 				return false;
 			}
-		}))
-			callRagel(file, lang);
+		})) {
+			String fname = file.toString();
+			if (fname.endsWith(RAGELX_EXT)) {
+				callRagelX(file, lang);
+			} else
+				callRagel(file, file, lang);
+		}
 	}
 
-	private void callRagel(File gramar, String[] lang) {
+	private void callRagelX(File file, final String[] lang) {
+		File tmp = null;
+		FileInputStream fin = null;
+		FileOutputStream fout = null;
+		try {
+			tmp = File.createTempFile("rglx", RAGEL_EXT);
+
+			fin = new FileInputStream(file);
+			fout = new FileOutputStream(tmp);
+			new RagelX(basename(file), lang[LANG_NAME]).compile(fin, fout);
+			fout.close();
+			getLog().error(tmp.toString());
+			callRagel(file, tmp, lang);
+		} catch (Exception e) {
+			getLog().error(e);
+		} finally {
+			if (tmp != null)
+				tmp.delete();
+			if (fin != null)
+				try {
+					fin.close();
+				} catch (IOException e) {
+				}
+			if (fout != null)
+				try {
+					fout.close();
+				} catch (IOException e) {
+				}
+		}
+	}
+
+	private void callRagel(File gramar, File input, String[] lang) {
 		File outFile = outputFile(gramar, lang[LANG_EXT]);
 		if (force || !outFile.exists()
 				|| outFile.lastModified() < gramar.lastModified())
 			try {
 				String args[] = new String[] { ragelCommand,
 						lang[LANG_COMMAND], "-o", outFile.toString(),
-						gramar.toString() };
-				File outPath = outFile.getParentFile(); 
+						input.toString() };
+				File outPath = outFile.getParentFile();
 				if (!outPath.exists())
 					outPath.mkdirs();
 
@@ -70,9 +111,9 @@ public class RagelCompile extends Ragel {
 				if (proc.waitFor() != 0)
 					getLog().error(
 							"Unable to compile [" + proc.exitValue() + "]: "
-									+ gramar);
+									+ gramar + ( gramar == input ? "" : " ("+input+")"));
 			} catch (IOException | InterruptedException e) {
-				getLog().error("Unable to compile: " + gramar, e);
+				getLog().error("Unable to compile: " + gramar+ ( gramar == input ? "" : " ("+input+")"), e);
 			}
 		else
 			getLog().info("Skipping grammar: " + gramar);
