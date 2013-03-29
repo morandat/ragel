@@ -10,7 +10,7 @@
 
 	<scm>
 		<url>http://localhost:8000/</url>
-		<connection>scm:hg:file:///tmp/ragel</connection>
+		<connection>scm:git:file:///tmp/ragel</connection>
 	</scm>
 
 	<properties>
