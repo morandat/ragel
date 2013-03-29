@@ -12,6 +12,12 @@ Supported phases:
 
 Maven Coordinates
 
+    <repository>
+      <id>se</id>
+      <url>https://se.labri.fr/maven/</url>
+      <!-- For some reason maven 3.0.4 seems required -->
+    </repository>
+  
     <build>
       <plugins>
         <plugin>
