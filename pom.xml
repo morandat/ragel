@@ -8,11 +8,6 @@
 
 	<name>ragel Maven Plugin</name>
 
-	<scm>
-		<url>http://localhost:8000/</url>
-		<connection>scm:git:file:///tmp/ragel</connection>
-	</scm>
-
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -107,11 +102,18 @@
 			<id>se</id>
 			<url>dav:https://webdav.labri.fr/vhosts/se.labri.fr/maven/</url>
 		</repository>
-		<snapshotRepository>
-			<id>se</id>
-			<url>dav:https://webdav.labri.fr/vhosts/se.labri.fr/maven/</url>
-		</snapshotRepository>
 	</distributionManagement>
+
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/morandat/ragel/issues</url>
+	</issueManagement>
+
+	<scm>
+		<url>http://github.com/morandat/ragel</url>
+		<connection>scm:git:git://github.com/morandat/ragel.git</connection>
+		<developerConnection>scm:git:git@github.com:morandat/ragel.git</developerConnection>
+	</scm>
 
 	<profiles>
 		<profile>
