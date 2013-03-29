@@ -1,5 +1,5 @@
-^\.project$
-^\.classpath$
-^target/
-^\.settings/
-~$
+.project
+.classpath
+*.class
+target/*
+.settings/*
