@@ -8,14 +8,15 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
-import fr.labri.ragelpp.RagelX;
-
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = true)
 public class RagelCompile extends Ragel {
@@ -30,7 +31,9 @@ public class RagelCompile extends Ragel {
 
 	@Parameter
 	private boolean force;
-
+	
+	private RagelXFactory rxFactory = getRagelX();
+	
 	public void execute() throws MojoExecutionException {
 		if (!outputDirectory.exists())
 			outputDirectory.mkdirs();
@@ -72,12 +75,11 @@ public class RagelCompile extends Ragel {
 
 			fin = new FileInputStream(file);
 			fout = new FileOutputStream(tmp);
-			new RagelX(basename(file), lang[LANG_NAME]).compile(fin, fout);
+			rxFactory.compile(basename(file), lang[LANG_NAME],  fin, fout);
 			fout.close();
-			getLog().error(tmp.toString());
 			callRagel(file, tmp, lang);
 		} catch (Exception e) {
-			getLog().error(e);
+			getLog().error(e.getMessage(), e);
 		} finally {
 			if (tmp != null)
 				tmp.delete();
@@ -106,7 +108,6 @@ public class RagelCompile extends Ragel {
 				if (!outPath.exists())
 					outPath.mkdirs();
 
-				getLog().info(Arrays.toString(args));
 				Process proc = Runtime.getRuntime().exec(args);
 				if (proc.waitFor() != 0)
 					getLog().error(
@@ -127,5 +128,35 @@ public class RagelCompile extends Ragel {
 
 		getLog().warn("No such language: " + lang);
 		return languages[0];
+	}
+	
+	interface RagelXFactory {
+		void compile(String machine, String language, InputStream in, OutputStream out) throws Exception;
+	}
+	
+	RagelXFactory getRagelX() {
+		if(rxFactory != null)
+			return rxFactory;
+		try {
+			final Class<?> clazz = Class.forName(RAGELX_CLASS_NAME);
+			final Constructor<?> ctor = clazz.getConstructor(String.class, String.class);
+			final Method method = clazz.getMethod(RAGELX_COMPILE_METHOD, InputStream.class, OutputStream.class);
+
+			return new RagelXFactory() {
+				@Override
+				public void compile(String machine, String language, InputStream in, OutputStream out) throws Exception {
+					getLog().info(String.format("Calling RagelX/%s for '%s'", language, machine));
+					Object ragelx = ctor.newInstance(machine, language);
+					method.invoke(ragelx, in, out);
+				}
+			};
+		} catch (final Exception e) {
+			return new RagelXFactory() {
+				@Override
+				public void compile(String machine, String language, InputStream in, OutputStream out) throws Exception {
+					throw new Exception("RagelX is not available ", e);
+				}
+			};
+		}
 	}
 }
