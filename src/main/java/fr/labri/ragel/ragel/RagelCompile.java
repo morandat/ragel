@@ -17,6 +17,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collection;
 
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = true)
 public class RagelCompile extends Ragel {
@@ -75,14 +77,14 @@ public class RagelCompile extends Ragel {
 
 			fin = new FileInputStream(file);
 			fout = new FileOutputStream(tmp);
-			rxFactory.compile(basename(file), lang[LANG_NAME],  fin, fout);
+			rxFactory.compile(basename(file), lang[LANG_NAME],  fin, fout, Arrays.asList(new String[]{"-I"+file.getParent()}));
 			fout.close();
 			callRagel(file, tmp, lang);
 		} catch (Exception e) {
 			getLog().error(e.getMessage(), e);
 		} finally {
-			if (tmp != null)
-				tmp.delete();
+//			if (tmp != null)
+//				tmp.delete();
 			if (fin != null)
 				try {
 					fin.close();
@@ -131,7 +133,7 @@ public class RagelCompile extends Ragel {
 	}
 	
 	interface RagelXFactory {
-		void compile(String machine, String language, InputStream in, OutputStream out) throws Exception;
+		void compile(String machine, String language, InputStream in, OutputStream out, Collection<String> opts) throws Exception;
 	}
 	
 	RagelXFactory getRagelX() {
@@ -140,20 +142,20 @@ public class RagelCompile extends Ragel {
 		try {
 			final Class<?> clazz = Class.forName(RAGELX_CLASS_NAME);
 			final Constructor<?> ctor = clazz.getConstructor(String.class, String.class);
-			final Method method = clazz.getMethod(RAGELX_COMPILE_METHOD, InputStream.class, OutputStream.class);
+			final Method method = clazz.getMethod(RAGELX_COMPILE_METHOD, InputStream.class, OutputStream.class, Collection.class);
 
 			return new RagelXFactory() {
 				@Override
-				public void compile(String machine, String language, InputStream in, OutputStream out) throws Exception {
-					getLog().info(String.format("Calling RagelX/%s for '%s'", language, machine));
+				public void compile(String machine, String language, InputStream in, OutputStream out, Collection<String> opts) throws Exception {
+					getLog().info(String.format("Calling RagelX/%s for '%s' (%s)", language, machine, opts));
 					Object ragelx = ctor.newInstance(machine, language);
-					method.invoke(ragelx, in, out);
+					method.invoke(ragelx, in, out, opts);
 				}
 			};
 		} catch (final Exception e) {
 			return new RagelXFactory() {
 				@Override
-				public void compile(String machine, String language, InputStream in, OutputStream out) throws Exception {
+				public void compile(String machine, String language, InputStream in, OutputStream out, Collection<String> opts) throws Exception {
 					throw new Exception("RagelX is not available ", e);
 				}
 			};
