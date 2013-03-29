@@ -22,7 +22,7 @@ public abstract class Ragel extends AbstractMojo {
 	public static final String languages[][] = { { "java", "-J", "java" } };
 
 	
-	public final static String RAGELX_CLASS_NAME = System.getProperty("ragelx.class", "fr.labri.ragelpp.RagelX");
+	public final static String RAGELX_CLASS_NAME = System.getProperty("ragelx.class", "fr.labri.ragelx.RagelX");
 	public final static String RAGELX_COMPILE_METHOD = System.getProperty("ragelx.method", "compile");
 
 	
