@@ -17,8 +17,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = true)
 public class RagelCompile extends Ragel {
@@ -33,6 +35,9 @@ public class RagelCompile extends Ragel {
 
 	@Parameter
 	private boolean force;
+	
+	@Parameter(property = "args", required = false)
+	private String[] args;
 	
 	private RagelXFactory rxFactory = getRagelX();
 	
@@ -77,7 +82,10 @@ public class RagelCompile extends Ragel {
 
 			fin = new FileInputStream(file);
 			fout = new FileOutputStream(tmp);
-			rxFactory.compile(basename(file), lang[LANG_NAME],  fin, fout, Arrays.asList(new String[]{"-I"+file.getParent()}));
+			List<String> rxargs = new ArrayList<>(Arrays.asList(args));
+			rxargs.add("-I"+file.getParent());
+			rxargs.add("-D__PACKAGE__="+packagePath(file));
+			rxFactory.compile(basename(file), lang[LANG_NAME],  fin, fout, rxargs);
 			fout.close();
 			callRagel(file, tmp, lang);
 		} catch (Exception e) {
@@ -109,7 +117,6 @@ public class RagelCompile extends Ragel {
 				File outPath = outFile.getParentFile();
 				if (!outPath.exists())
 					outPath.mkdirs();
-
 				Process proc = Runtime.getRuntime().exec(args);
 				if (proc.waitFor() != 0)
 					getLog().error(
@@ -141,14 +148,14 @@ public class RagelCompile extends Ragel {
 			return rxFactory;
 		try {
 			final Class<?> clazz = Class.forName(RAGELX_CLASS_NAME);
-			final Constructor<?> ctor = clazz.getConstructor(String.class, String.class);
+			final Constructor<?> ctor = clazz.getConstructor(String.class, String.class, String.class);
 			final Method method = clazz.getMethod(RAGELX_COMPILE_METHOD, InputStream.class, OutputStream.class, Collection.class);
 
 			return new RagelXFactory() {
 				@Override
 				public void compile(String machine, String language, InputStream in, OutputStream out, Collection<String> opts) throws Exception {
 					getLog().info(String.format("Calling RagelX/%s for '%s' (%s)", language, machine, opts));
-					Object ragelx = ctor.newInstance(machine, language);
+					Object ragelx = ctor.newInstance(machine, language, null);
 					method.invoke(ragelx, in, out, opts);
 				}
 			};

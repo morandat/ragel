@@ -6,7 +6,8 @@
 	<version>0.2-SNAPSHOT</version>
 	<packaging>maven-plugin</packaging>
 
-	<name>ragel Maven Plugin</name>
+	<name>ragel-plugin</name>
+	<description>Maven plug-in for Ragel</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

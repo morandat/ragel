@@ -34,11 +34,16 @@ public abstract class Ragel extends AbstractMojo {
 			asString = asString.substring(0, pos);
 		return asString;
 	}
+	
 	protected File outputFile(File gramar, String ext) {
 		File targetDir = new File(outputDirectory, gramar.getParent().substring(
 				sourceDirectory.toString().length()));
 		
 		return new File(targetDir, new StringBuilder(basename(gramar)).append('.')
 				.append(ext).toString());
+	}
+	
+	protected String packagePath(File path) {
+		return path.getParent().substring(sourceDirectory.toString().length() + 1).replace(File.separatorChar, '.');
 	}
 }
