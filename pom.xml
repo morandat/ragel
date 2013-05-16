@@ -3,7 +3,7 @@
 
 	<groupId>fr.labri.ragel</groupId>
 	<artifactId>ragel</artifactId>
-	<version>0.2-SNAPSHOT</version>
+	<version>0.2</version>
 	<packaging>maven-plugin</packaging>
 
 	<name>ragel-plugin</name>
