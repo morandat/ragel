@@ -19,7 +19,7 @@ public abstract class Ragel extends AbstractMojo {
 	public final static int LANG_COMMAND = 1;
 	public final static int LANG_EXT = 2;
 
-	public static final String languages[][] = { { "java", "-J", "java" } };
+	public static final String languages[][] = { { "java", "-J", "java" }, { "c", "-C", "c" }};
 
 	
 	public final static String RAGELX_CLASS_NAME = System.getProperty("ragelx.class", "fr.labri.ragelx.RagelX");
@@ -44,6 +44,10 @@ public abstract class Ragel extends AbstractMojo {
 	}
 	
 	protected String packagePath(File path) {
-		return path.getParent().substring(sourceDirectory.toString().length() + 1).replace(File.separatorChar, '.');
+		String parent = path.getParent();
+		int len = sourceDirectory.toString().length() + 1;
+		if(parent.length() > len)
+			return parent.substring(len).replace(File.separatorChar, '.');
+		return "";
 	}
 }
